@@ -1,1 +1,4 @@
-print('Synthtax starter: run `pip install -r requirements.txt` then paste the full app.py from chat.')
+from app.ui import launch_app
+
+if __name__ == "__main__":
+    launch_app().launch()
