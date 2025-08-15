@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import os
+import base64
 from typing import Tuple
 
 import gradio as gr
@@ -22,15 +23,35 @@ PRESETS = {
 }
 
 
-def _preview_from_prompt(prompt: str) -> Tuple[Tuple[int, bytes], str]:
-    """Build track from prompt and return audio bytes + YAML recipe."""
+def _waveform_html(audio_b64: str) -> str:
+    """Return HTML/JS for a waveform visualizer using WaveSurfer."""
+
+    return f"""
+    <div id='waveform'></div>
+    <div class='controls'><button id='play'>Play/Pause</button></div>
+    <script src='https://unpkg.com/wavesurfer.js'></script>
+    <script>
+    const wavesurfer = WaveSurfer.create({{
+        container: '#waveform',
+        waveColor: '#d9dcff',
+        progressColor: '#4353ff'
+    }});
+    wavesurfer.load('data:audio/wav;base64,{audio_b64}');
+    document.getElementById('play').onclick = () => wavesurfer.playPause();
+    </script>
+    """
+
+
+def _preview_from_prompt(prompt: str) -> Tuple[Tuple[int, bytes], str, str]:
+    """Build track from prompt and return audio bytes, YAML recipe and visualizer."""
 
     recipe = generate_recipe_from_prompt(prompt)
     track = build_track(recipe)
     buf = io.BytesIO()
     track.export(buf, format="wav")
     audio_bytes = buf.getvalue()
-    return (track.frame_rate, audio_bytes), yaml.safe_dump(recipe)
+    audio_b64 = base64.b64encode(audio_bytes).decode("ascii")
+    return (track.frame_rate, audio_bytes), yaml.safe_dump(recipe), _waveform_html(audio_b64)
 
 
 def _export_from_prompt(prompt: str) -> str:
@@ -63,9 +84,12 @@ def launch_app() -> gr.Blocks:
 
         audio = gr.Audio(label="Preview")
         code = gr.Code(label="Recipe", language="yaml")
+        visual = gr.HTML(label="Visualizer")
         file_out = gr.File(label="Download")
 
-        preview_btn.click(_preview_from_prompt, inputs=prompt, outputs=[audio, code])
+        preview_btn.click(
+            _preview_from_prompt, inputs=prompt, outputs=[audio, code, visual]
+        )
         export_btn.click(_export_from_prompt, inputs=prompt, outputs=file_out)
 
     return demo
