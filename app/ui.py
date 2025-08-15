@@ -1,58 +1,76 @@
+"""Minimal Gradio user interface for Synthtax."""
+
+from __future__ import annotations
+
+import io
+import os
+from typing import Tuple
+
 import gradio as gr
-from pydub import AudioSegment
+import yaml
 
-from .engine import (
-    generate_recipe_from_prompt,
-    build_track,
-    play_preview,
-    export_track,
-)
+from .engine import generate_recipe_from_prompt, build_track
 
 
-STYLE_TEMPLATES = {
-    "Ambient": "Ambient soundscape with soft pads and long reverb",
-    "Synth": "Retro synthwave with arpeggios",
-    "Pop": "Modern pop with catchy melodies",
-    "Dance": "Upbeat dance track with heavy bass and bright leads",
+DEFAULT_PROMPT = "Ambient soundscape with soft pads and long reverb"
+
+PRESETS = {
+    "Ambient": DEFAULT_PROMPT,
+    "Synth": "Synthwave arps, punchy kick, chorus pads",
+    "Pop": "Bright pop beat, claps on 2/4, clean bass",
+    "Dance": "Clubby 4/4 kick, driving hats, saw bass",
 }
 
 
-def launch_app() -> gr.Blocks:
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue="slate"), css="body {background-color: #111; color: #eee}") as demo:
-        gr.Markdown("## Synthtax Demo", elem_id="title")
+def _preview_from_prompt(prompt: str) -> Tuple[Tuple[int, bytes], str]:
+    """Build track from prompt and return audio bytes + YAML recipe."""
 
-        prompt = gr.Textbox(label="Prompt", lines=2)
-        style_state = gr.State("")
-        track_state = gr.State()
+    recipe = generate_recipe_from_prompt(prompt)
+    track = build_track(recipe)
+    buf = io.BytesIO()
+    track.export(buf, format="wav")
+    audio_bytes = buf.getvalue()
+    return (track.frame_rate, audio_bytes), yaml.safe_dump(recipe)
+
+
+def _export_from_prompt(prompt: str) -> str:
+    """Render and export the track to ``out/synthtax_demo.wav``."""
+
+    recipe = generate_recipe_from_prompt(prompt)
+    track = build_track(recipe)
+    out_dir = "out"
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, "synthtax_demo.wav")
+    track.export(out_path, format="wav")
+    return out_path
+
+
+def launch_app() -> gr.Blocks:
+    """Return the Gradio Blocks app."""
+
+    with gr.Blocks() as demo:
+        prompt = gr.Textbox(label="Prompt", value=DEFAULT_PROMPT)
 
         with gr.Row():
-            for name, template in STYLE_TEMPLATES.items():
-                def _preset(template=template, name=name):
-                    return template, name
-                gr.Button(name).click(_preset, outputs=[prompt, style_state])
+            for label, text in PRESETS.items():
+                def _set(t=text):
+                    return t
 
-        audio_out = gr.Audio(label="Preview", interactive=False)
-
-        def _preview(p, style):
-            recipe = generate_recipe_from_prompt(p, style)
-            track = build_track(recipe)
-            data = play_preview(track)
-            return data, track
+                gr.Button(label).click(_set, outputs=prompt)
 
         preview_btn = gr.Button("Preview")
-        preview_btn.click(_preview, inputs=[prompt, style_state], outputs=[audio_out, track_state])
-
-        def _export(track: AudioSegment):
-            if track is None:
-                raise gr.Error("Generate a preview first")
-            return export_track(track, "out/demo.wav")
-
         export_btn = gr.Button("Export")
+
+        audio = gr.Audio(label="Preview")
+        code = gr.Code(label="Recipe", language="yaml")
         file_out = gr.File(label="Download")
-        export_btn.click(_export, inputs=track_state, outputs=file_out)
+
+        preview_btn.click(_preview_from_prompt, inputs=prompt, outputs=[audio, code])
+        export_btn.click(_export_from_prompt, inputs=prompt, outputs=file_out)
 
     return demo
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     launch_app().launch()
+
