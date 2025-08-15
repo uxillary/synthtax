@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+out/
+assets/synthtax-logo.svg
+.gradio/

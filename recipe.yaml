@@ -1,0 +1,53 @@
+bpm: 84
+length_beats: 128
+grid: "1/8"
+sample_rate: 44100
+out_dir: "out"
+out_file: "out/synthtax_demo.wav"
+
+layers:
+  - name: "vinyl"
+    source: "samples/textures/vinyl_noise.*"
+    loop: true
+    start_beats: 0
+    fx:
+      gain_db: -18
+      lowpass_hz: 14000
+
+  - name: "kick"
+    source: "samples/drums/kick.*"
+    loop: true
+    start_beats: 0
+    fx:
+      gain_db: -1
+      highpass_hz: 25
+
+  - name: "snare"
+    source: "samples/drums/snare.*"
+    loop: true
+    start_beats: 2
+    fx:
+      gain_db: -3
+      reverb: "small"
+
+  - name: "hat"
+    source: "samples/drums/hat.*"
+    loop: true
+    start_beats: 0.5
+    fx:
+      gain_db: -8
+      pan: 0.35
+
+  - name: "drone"
+    source: "samples/textures/drone1.*"
+    loop: true
+    start_beats: 0
+    fx:
+      gain_db: -10
+      lowpass_hz: 6000
+      reverb: "large"
+      fade_in_ms: 4000
+
+master_fx:
+  normalize: true
+  master_gain_db: -1.0

@@ -1,0 +1,5 @@
+- [ ] Pattern drums
+- [ ] Convolution reverb
+- [ ] Preset packs
+- [ ] Save/load projects
+- [ ] Zip export
