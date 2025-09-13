@@ -48,6 +48,24 @@ def parse(text: str) -> List[Dict]:
                 raise ValueError(f"Invalid fadeIn syntax: {line}")
             track, secs = m.groups()
             commands.append({'action': 'fadeIn', 'track': track, 'seconds': int(secs)})
+        elif line.startswith('fadeOut'):
+            m = re.match(r'fadeOut\(\s*(\w+),\s*seconds\s*=\s*(\d+)\s*\)', line)
+            if not m:
+                raise ValueError(f"Invalid fadeOut syntax: {line}")
+            track, secs = m.groups()
+            commands.append({'action': 'fadeOut', 'track': track, 'seconds': int(secs)})
+        elif line.startswith('slice'):
+            m = re.match(r'slice\(\s*(\w+),\s*start\s*=\s*(\d+),\s*duration\s*=\s*(\d+)\s*\)', line)
+            if not m:
+                raise ValueError(f"Invalid slice syntax: {line}")
+            track, start, dur = m.groups()
+            commands.append({'action': 'slice', 'track': track, 'start': int(start), 'duration': int(dur)})
+        elif line.startswith('reverse'):
+            m = re.match(r'reverse\(\s*(\w+)\s*\)', line)
+            if not m:
+                raise ValueError(f"Invalid reverse syntax: {line}")
+            track = m.group(1)
+            commands.append({'action': 'reverse', 'track': track})
         elif line.startswith('reverb'):
             m = re.match(r'reverb\(\s*(\w+),\s*amount\s*=\s*([0-9.]+)\s*\)', line)
             if not m:
@@ -85,6 +103,12 @@ def from_yaml(yaml_text: str) -> str:
             lines.append(f"gain({cmd['track']}, {cmd['db']})")
         elif act == 'fadeIn':
             lines.append(f"fadeIn({cmd['track']}, seconds={cmd['seconds']})")
+        elif act == 'fadeOut':
+            lines.append(f"fadeOut({cmd['track']}, seconds={cmd['seconds']})")
+        elif act == 'slice':
+            lines.append(f"slice({cmd['track']}, start={cmd['start']}, duration={cmd['duration']})")
+        elif act == 'reverse':
+            lines.append(f"reverse({cmd['track']})")
         elif act == 'reverb':
             lines.append(f"reverb({cmd['track']}, amount={cmd['amount']})")
         elif act == 'export':

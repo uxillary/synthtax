@@ -28,6 +28,18 @@ def apply_commands(commands: List[Dict], uploaded_path: Optional[str] = None, pr
             seg = tracks.get(cmd['track'])
             if seg is not None:
                 tracks[cmd['track']] = fx.fade_in(seg, cmd['seconds'])
+        elif action == 'fadeOut':
+            seg = tracks.get(cmd['track'])
+            if seg is not None:
+                tracks[cmd['track']] = fx.fade_out(seg, cmd['seconds'])
+        elif action == 'slice':
+            seg = tracks.get(cmd['track'])
+            if seg is not None:
+                tracks[cmd['track']] = fx.slice_segment(seg, cmd['start'], cmd['duration'])
+        elif action == 'reverse':
+            seg = tracks.get(cmd['track'])
+            if seg is not None:
+                tracks[cmd['track']] = fx.reverse(seg)
         elif action == 'reverb':
             seg = tracks.get(cmd['track'])
             if seg is not None:

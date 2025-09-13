@@ -19,6 +19,19 @@ def fade_in(segment: AudioSegment, seconds: int) -> AudioSegment:
     """Fade in the segment."""
     return segment.fade_in(seconds * 1000)
 
+def fade_out(segment: AudioSegment, seconds: int) -> AudioSegment:
+    """Fade out the segment."""
+    return segment.fade_out(seconds * 1000)
+
+def slice_segment(segment: AudioSegment, start_ms: int, duration_ms: int) -> AudioSegment:
+    """Extract a portion of the segment."""
+    end_ms = start_ms + duration_ms
+    return segment[start_ms:end_ms]
+
+def reverse(segment: AudioSegment) -> AudioSegment:
+    """Reverse the audio segment."""
+    return segment.reverse()
+
 def reverb(segment: AudioSegment, amount: float = 0.5) -> AudioSegment:
     """Simple reverb using delayed attenuated copies with numpy."""
     samples = np.array(segment.get_array_of_samples()).astype(np.float32)
