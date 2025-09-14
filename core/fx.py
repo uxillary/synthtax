@@ -32,6 +32,10 @@ def reverse(segment: AudioSegment) -> AudioSegment:
     """Reverse the audio segment."""
     return segment.reverse()
 
+def pan(segment: AudioSegment, amount: float) -> AudioSegment:
+    """Pan the audio segment left (-1.0) to right (1.0)."""
+    return segment.pan(amount)
+
 def reverb(segment: AudioSegment, amount: float = 0.5) -> AudioSegment:
     """Simple reverb using delayed attenuated copies with numpy."""
     samples = np.array(segment.get_array_of_samples()).astype(np.float32)
