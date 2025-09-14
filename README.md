@@ -27,7 +27,9 @@ Synthtax mixes are built from simple text commands:
 - `fadeIn(track, seconds=2)` / `fadeOut(track, seconds=2)` — fade transitions
 - `slice(track, start=0, duration=500)` — grab a mini-sample
 - `reverse(track)` — reverse a track
+- `pan(track, amount=-1.0..1.0)` — pan left/right
 - `reverb(track, amount=0.5)` — add simple reverb
+- `normalize(track, headroom=0.1)` — normalize level
 - `export("mix.wav")` — write the final mix
 
 ## FFmpeg

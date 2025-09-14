@@ -72,6 +72,15 @@ def parse(text: str) -> List[Dict]:
                 raise ValueError(f"Invalid pan syntax: {line}")
             track, amt = m.groups()
             commands.append({'action': 'pan', 'track': track, 'amount': float(amt)})
+        elif line.startswith('normalize'):
+            m = re.match(r'normalize\(\s*(\w+)(?:,\s*headroom\s*=\s*([0-9.]+))?\s*\)', line)
+            if not m:
+                raise ValueError(f"Invalid normalize syntax: {line}")
+            track, headroom = m.groups()
+            cmd = {'action': 'normalize', 'track': track}
+            if headroom is not None:
+                cmd['headroom'] = float(headroom)
+            commands.append(cmd)
         elif line.startswith('reverb'):
             m = re.match(r'reverb\(\s*(\w+),\s*amount\s*=\s*([0-9.]+)\s*\)', line)
             if not m:
@@ -117,6 +126,11 @@ def from_yaml(yaml_text: str) -> str:
             lines.append(f"reverse({cmd['track']})")
         elif act == 'pan':
             lines.append(f"pan({cmd['track']}, amount={cmd['amount']})")
+        elif act == 'normalize':
+            if 'headroom' in cmd:
+                lines.append(f"normalize({cmd['track']}, headroom={cmd['headroom']})")
+            else:
+                lines.append(f"normalize({cmd['track']})")
         elif act == 'reverb':
             lines.append(f"reverb({cmd['track']}, amount={cmd['amount']})")
         elif act == 'export':

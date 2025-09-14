@@ -36,6 +36,11 @@ def pan(segment: AudioSegment, amount: float) -> AudioSegment:
     """Pan the audio segment left (-1.0) to right (1.0)."""
     return segment.pan(amount)
 
+def normalize(segment: AudioSegment, headroom: float = 0.1) -> AudioSegment:
+    """Normalize audio to a target headroom in dBFS."""
+    change = -segment.max_dBFS - headroom
+    return segment.apply_gain(change)
+
 def reverb(segment: AudioSegment, amount: float = 0.5) -> AudioSegment:
     """Simple reverb using delayed attenuated copies with numpy."""
     samples = np.array(segment.get_array_of_samples()).astype(np.float32)
