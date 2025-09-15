@@ -2,10 +2,66 @@ import re
 import yaml
 from typing import List, Dict
 
-# Placeholder for OpenAI integration
+
 def prompt_to_synthtax(prompt: str) -> str:
-    """Convert natural language prompt to Synthtax code (placeholder)."""
-    return f"# TODO: implement OpenAI prompt -> Synthtax\n# prompt: {prompt}"
+    """Convert a simple natural language prompt to Synthtax DSL.
+
+    This implementation is intentionally lightweight and only recognises a
+    subset of the language.  It is *not* meant to be a perfect natural
+    language parser but rather a convenience for the most common cases while
+    a full model-backed solution is developed.
+
+    Supported phrases:
+
+    - ``set bpm to X`` and optional ``key to Y``
+    - ``load TRACK from "file"``
+    - ``loop TRACK for N bars``
+    - ``gain TRACK by N dB``
+    - ``export to "file"``
+
+    Multiple commands can be included in a single prompt and will be emitted
+    as separate Synthtax lines.  If no patterns are recognised a placeholder
+    comment is returned, mirroring the previous behaviour.
+    """
+
+    lines: List[str] = []
+
+    # ``set`` command (bpm and/or key)
+    bpm_match = re.search(r"set\s+bpm\s+to\s+(\d+)", prompt, re.IGNORECASE)
+    key_match = re.search(r"key\s+to\s+([^,\.]+)", prompt, re.IGNORECASE)
+    if bpm_match or key_match:
+        parts = []
+        if bpm_match:
+            parts.append(f"bpm={bpm_match.group(1)}")
+        if key_match:
+            key_val = key_match.group(1).strip()
+            parts.append(f"key=\"{key_val}\"")
+        lines.append(f"set({', '.join(parts)})")
+
+    # ``load`` command
+    for m in re.finditer(r"load\s+(\w+)\s+from\s+['\"]([^'\"]+)['\"]", prompt, re.IGNORECASE):
+        track, file = m.groups()
+        lines.append(f"load {track} from \"{file}\"")
+
+    # ``loop`` command
+    for m in re.finditer(r"loop\s+(\w+)\s+for\s+(\d+)\s+bars", prompt, re.IGNORECASE):
+        track, bars = m.groups()
+        lines.append(f"loop({track}, bars={bars})")
+
+    # ``gain`` command
+    for m in re.finditer(r"gain\s+(\w+)\s+by\s+(-?\d+)\s*dB", prompt, re.IGNORECASE):
+        track, db = m.groups()
+        lines.append(f"gain({track}, {db})")
+
+    # ``export`` command
+    for m in re.finditer(r"export\s+to\s+['\"]([^'\"]+)['\"]", prompt, re.IGNORECASE):
+        filename = m.group(1)
+        lines.append(f"export(\"{filename}\")")
+
+    if not lines:
+        return f"# TODO: implement OpenAI prompt -> Synthtax\n# prompt: {prompt}"
+
+    return "\n".join(lines)
 
 def parse(text: str) -> List[Dict]:
     """Parse Synthtax DSL into a list of command dictionaries."""
