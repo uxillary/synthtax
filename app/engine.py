@@ -98,12 +98,13 @@ def make_pad(
 # Prompt -> recipe
 
 
-def generate_recipe_from_prompt(prompt: str) -> Dict:
+def generate_recipe_from_prompt(prompt: str, override_bpm: int | None = None) -> Dict:
     """Return a minimal recipe dict derived from ``prompt``.
 
     The prompt is scanned for simple style keywords.  Each style controls the
     BPM, hi‑hat density and pad waveform so that different prompts yield
-    noticeably different audio.
+    noticeably different audio.  If ``override_bpm`` is provided it will replace
+    the style's default tempo so the user can fine tune the speed of the mix.
     """
 
     text = prompt.lower()
@@ -144,6 +145,9 @@ def generate_recipe_from_prompt(prompt: str) -> Dict:
         recipe["pad_reverb"] = True
     else:
         recipe["pad_reverb"] = False
+
+    if override_bpm is not None:
+        recipe["bpm"] = override_bpm
 
     return recipe
 

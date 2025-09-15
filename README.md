@@ -16,6 +16,7 @@ python app.py
 ```
 
 Open the local URL shown to use the UI. Drop some samples in `samples/` and start prompting.
+The interface includes a BPM slider so you can quickly adjust the tempo of the generated mix.
 
 ## Supported Commands
 
