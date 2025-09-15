@@ -6,6 +6,7 @@ import io
 import os
 import base64
 from typing import Tuple
+import random
 
 import gradio as gr
 import yaml
@@ -28,7 +29,7 @@ def _waveform_html(audio_b64: str) -> str:
 
     return f"""
     <div id='waveform'></div>
-    <div class='controls'><button id='play'>Play/Pause</button></div>
+    <div class='controls'><button id='play' aria-label='Play or pause preview'>Play/Pause</button></div>
     <script src='https://unpkg.com/wavesurfer.js'></script>
     <script>
     const wavesurfer = WaveSurfer.create({{
@@ -69,8 +70,13 @@ def _export_from_prompt(prompt: str) -> str:
 def launch_app() -> gr.Blocks:
     """Return the Gradio Blocks app."""
 
-    with gr.Blocks() as demo:
-        prompt = gr.Textbox(label="Prompt", value=DEFAULT_PROMPT)
+    with gr.Blocks(theme=gr.themes.Soft()) as demo:
+        gr.Markdown("# Synthtax\nDescribe a vibe and let the AI mix.")
+        prompt = gr.Textbox(
+            label="Prompt",
+            value=DEFAULT_PROMPT,
+            placeholder="Describe the vibe or mood",
+        )
 
         with gr.Row():
             for label, text in PRESETS.items():
@@ -78,6 +84,10 @@ def launch_app() -> gr.Blocks:
                     return t
 
                 gr.Button(label).click(_set, outputs=prompt)
+            gr.Button("Random").click(
+                lambda: random.choice(list(PRESETS.values())), outputs=prompt
+            )
+            gr.Button("Clear").click(lambda: "", outputs=prompt)
 
         preview_btn = gr.Button("Preview")
         export_btn = gr.Button("Export")
