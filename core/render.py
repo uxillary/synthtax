@@ -44,6 +44,10 @@ def apply_commands(commands: List[Dict], uploaded_path: Optional[str] = None, pr
             seg = tracks.get(cmd['track'])
             if seg is not None:
                 tracks[cmd['track']] = fx.pan(seg, cmd['amount'])
+        elif action == 'lowPass':
+            seg = tracks.get(cmd['track'])
+            if seg is not None:
+                tracks[cmd['track']] = fx.low_pass(seg, cmd['cutoff'])
         elif action == 'reverb':
             seg = tracks.get(cmd['track'])
             if seg is not None:

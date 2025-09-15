@@ -28,6 +28,8 @@ Synthtax mixes are built from simple text commands:
 - `slice(track, start=0, duration=500)` — grab a mini-sample
 - `reverse(track)` — reverse a track
 - `reverb(track, amount=0.5)` — add simple reverb
+- `pan(track, amount=-0.5)` — pan left/right (-1.0 to 1.0)
+- `lowPass(track, cutoff=2000)` — apply a low-pass filter
 - `export("mix.wav")` — write the final mix
 
 ## FFmpeg

@@ -72,6 +72,12 @@ def parse(text: str) -> List[Dict]:
                 raise ValueError(f"Invalid pan syntax: {line}")
             track, amt = m.groups()
             commands.append({'action': 'pan', 'track': track, 'amount': float(amt)})
+        elif line.startswith('lowPass'):
+            m = re.match(r'lowPass\(\s*(\w+),\s*cutoff\s*=\s*(\d+)\s*\)', line)
+            if not m:
+                raise ValueError(f"Invalid lowPass syntax: {line}")
+            track, cutoff = m.groups()
+            commands.append({'action': 'lowPass', 'track': track, 'cutoff': int(cutoff)})
         elif line.startswith('reverb'):
             m = re.match(r'reverb\(\s*(\w+),\s*amount\s*=\s*([0-9.]+)\s*\)', line)
             if not m:
@@ -117,6 +123,8 @@ def from_yaml(yaml_text: str) -> str:
             lines.append(f"reverse({cmd['track']})")
         elif act == 'pan':
             lines.append(f"pan({cmd['track']}, amount={cmd['amount']})")
+        elif act == 'lowPass':
+            lines.append(f"lowPass({cmd['track']}, cutoff={cmd['cutoff']})")
         elif act == 'reverb':
             lines.append(f"reverb({cmd['track']}, amount={cmd['amount']})")
         elif act == 'export':
