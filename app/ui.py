@@ -43,10 +43,10 @@ def _waveform_html(audio_b64: str) -> str:
     """
 
 
-def _preview_from_prompt(prompt: str) -> Tuple[Tuple[int, bytes], str, str]:
-    """Build track from prompt and return audio bytes, YAML recipe and visualizer."""
+def _preview_from_prompt(prompt: str, bpm: int) -> Tuple[Tuple[int, bytes], str, str]:
+    """Build track from ``prompt`` and ``bpm`` returning audio bytes, YAML recipe and visualizer."""
 
-    recipe = generate_recipe_from_prompt(prompt)
+    recipe = generate_recipe_from_prompt(prompt, override_bpm=bpm)
     track = build_track(recipe)
     buf = io.BytesIO()
     track.export(buf, format="wav")
@@ -55,10 +55,10 @@ def _preview_from_prompt(prompt: str) -> Tuple[Tuple[int, bytes], str, str]:
     return (track.frame_rate, audio_bytes), yaml.safe_dump(recipe), _waveform_html(audio_b64)
 
 
-def _export_from_prompt(prompt: str) -> str:
+def _export_from_prompt(prompt: str, bpm: int) -> str:
     """Render and export the track to ``out/synthtax_demo.wav``."""
 
-    recipe = generate_recipe_from_prompt(prompt)
+    recipe = generate_recipe_from_prompt(prompt, override_bpm=bpm)
     track = build_track(recipe)
     out_dir = "out"
     os.makedirs(out_dir, exist_ok=True)
@@ -77,6 +77,7 @@ def launch_app() -> gr.Blocks:
             value=DEFAULT_PROMPT,
             placeholder="Describe the vibe or mood",
         )
+        bpm = gr.Slider(60, 160, value=120, step=1, label="BPM")
 
         with gr.Row():
             for label, text in PRESETS.items():
@@ -98,9 +99,9 @@ def launch_app() -> gr.Blocks:
         file_out = gr.File(label="Download")
 
         preview_btn.click(
-            _preview_from_prompt, inputs=prompt, outputs=[audio, code, visual]
+            _preview_from_prompt, inputs=[prompt, bpm], outputs=[audio, code, visual]
         )
-        export_btn.click(_export_from_prompt, inputs=prompt, outputs=file_out)
+        export_btn.click(_export_from_prompt, inputs=[prompt, bpm], outputs=file_out)
 
     return demo
 
