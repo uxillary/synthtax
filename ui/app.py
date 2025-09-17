@@ -1,13 +1,73 @@
+from typing import Optional
+
 import gradio as gr
 import numpy as np
+
 from core import parser, render
 
 PRESETS = {
-    "Ambient": """set(bpm=80, key=\"C\")\nload main from \"uploaded\"\nreverb(main, amount=0.7)\ngain(main, -3)\nexport(\"ambient_mix.wav\")""",
-    "Synth": """set(bpm=100, key=\"Dm\")\nload main from \"uploaded\"\nloop(main, bars=2)\nreverb(main, amount=0.5)\nexport(\"synth_mix.wav\")""",
-    "Pop": """set(bpm=120, key=\"G\")\nload main from \"uploaded\"\ngain(main, 5)\nexport(\"pop_mix.wav\")""",
-    "Dance": """set(bpm=128, key=\"F#m\")\nload main from \"uploaded\"\nloop(main, bars=4)\ngain(main, 2)\nexport(\"dance_mix.wav\")""",
+    "Ambient Drift": {
+        "recipe": """set(bpm=80, key=\"C\")\nload main from \"uploaded\"\nreverb(main, amount=0.7)\ngain(main, -3)\nexport(\"ambient_mix.wav\")""",
+        "description": "Float through airy pads with long echoes for calm and spacious textures.\n\n- Tempo: 80 BPM in C\n- Wide reverb wash\n- Gentle gain dip for smooth dynamics",
+    },
+    "Neon Pulse": {
+        "recipe": """set(bpm=100, key=\"Dm\")\nload main from \"uploaded\"\nloop(main, bars=2)\nreverb(main, amount=0.5)\nexport(\"synth_mix.wav\")""",
+        "description": "Layered synthwave bounce with a tight loop and shimmering tails.\n\n- Tempo: 100 BPM in D minor\n- Two-bar looping motif\n- Polished ambience for neon shimmer",
+    },
+    "Sunny Pop": {
+        "recipe": """set(bpm=120, key=\"G\")\nload main from \"uploaded\"\ngain(main, 5)\nexport(\"pop_mix.wav\")""",
+        "description": "Brighten your hooks with an upbeat tempo boost and polished gain stage.\n\n- Tempo: 120 BPM in G\n- Forward vocals and leads\n- Clean export with extra sparkle",
+    },
+    "Night Runner": {
+        "recipe": """set(bpm=128, key=\"F#m\")\nload main from \"uploaded\"\nloop(main, bars=4)\ngain(main, 2)\nexport(\"dance_mix.wav\")""",
+        "description": "High-energy club feel with extended loops and a confident lift in loudness.\n\n- Tempo: 128 BPM in F# minor\n- Four-bar repeating driver\n- Volume push to own the floor",
+    },
 }
+
+DEFAULT_PRESET = "Ambient Drift"
+DEFAULT_RECIPE = PRESETS[DEFAULT_PRESET]["recipe"]
+
+THEME = gr.themes.Soft(
+    primary_hue="violet",
+    secondary_hue="blue",
+    neutral_hue="slate",
+)
+
+CSS = """
+.gradio-container {max-width: 1100px !important; margin: 0 auto;}
+.preset-description {min-height: 120px;}
+.recipe-box textarea {font-size: 0.95rem;}
+"""
+
+
+def _preset_summary_text(name: Optional[str]) -> str:
+    preset = PRESETS.get(name or "")
+    if not preset:
+        return "Select a preset to see what it does."
+    return f"**{name}**\n\n{preset['description']}"
+
+
+def _preset_summary(name: Optional[str]):
+    return gr.Markdown.update(value=_preset_summary_text(name))
+
+
+def _load_preset_recipe(name: Optional[str]):
+    preset = PRESETS.get(name or "")
+    if not preset:
+        return gr.update()
+    return preset["recipe"]
+
+
+def _reset_workspace():
+    return (
+        None,
+        DEFAULT_RECIPE,
+        None,
+        gr.update(value=""),
+        None,
+        gr.update(value=DEFAULT_PRESET),
+        _preset_summary(DEFAULT_PRESET),
+    )
 
 
 def _segment_to_ndarray(seg):
@@ -36,22 +96,73 @@ def export_fn(file, recipe):
 
 
 def build_ui() -> gr.Blocks:
-    with gr.Blocks() as demo:
-        gr.Markdown("# Synthtax")
-        audio_file = gr.File(label="Upload", file_types=["audio"])
-        recipe_box = gr.Code(label="Recipe", language="python")
-        with gr.Row():
-            for name, preset in PRESETS.items():
-                gr.Button(name).click(lambda p=preset: p, None, recipe_box)
-        with gr.Row():
-            preview_btn = gr.Button("Preview")
-            export_btn = gr.Button("Export")
-        with gr.Row():
-            audio_out = gr.Audio(label="Preview")
-            recipe_out = gr.Code(label="Recipe")
-            download_out = gr.File(label="Download")
-        preview_btn.click(preview_fn, inputs=[audio_file, recipe_box], outputs=[audio_out, recipe_out, download_out])
-        export_btn.click(export_fn, inputs=[audio_file, recipe_box], outputs=[audio_out, recipe_out, download_out])
+    with gr.Blocks(theme=THEME, css=CSS) as demo:
+        gr.Markdown(
+            """# 🎛️ Synthtax Studio\nDesign transformations for your tracks with readable audio recipes."""
+        )
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1, min_width=320):
+                gr.Markdown(
+                    """### 1. Drop in audio\nUpload a stem or full mix to start reshaping your sound."""
+                )
+                audio_file = gr.File(label="Upload audio", file_types=["audio"])
+                with gr.Accordion("Need a quick syntax tour?", open=False):
+                    gr.Markdown(
+                        """- `set(bpm=120, key=\"C\")` adjusts global tempo and key.\n- `load main from \"uploaded\"` grabs your uploaded file.\n- Effects like `reverb`, `gain`, and `loop` sculpt the vibe.\n- `export(\"mix.wav\")` saves the final bounce."""
+                    )
+                gr.Markdown(
+                    """### 2. Choose a preset vibe\nExplore curated starting points before fine-tuning the recipe."""
+                )
+                preset_selector = gr.Radio(
+                    choices=list(PRESETS.keys()),
+                    value=DEFAULT_PRESET,
+                    label="Preset",
+                    info="Preview the description below, then load it into the editor when you're ready.",
+                )
+                preset_summary = gr.Markdown(
+                    _preset_summary_text(DEFAULT_PRESET),
+                    elem_classes=["preset-description"],
+                )
+                use_preset_btn = gr.Button("Use preset in editor", variant="secondary")
+            with gr.Column(scale=2, min_width=480):
+                gr.Markdown(
+                    """### 3. Craft your recipe\nTweak the steps or write new ones to explore different sonic outcomes."""
+                )
+                recipe_box = gr.Code(
+                    label="Recipe editor",
+                    language="python",
+                    value=DEFAULT_RECIPE,
+                    elem_classes=["recipe-box"],
+                    lines=12,
+                )
+                with gr.Row():
+                    preview_btn = gr.Button("🎧 Preview mix", variant="secondary")
+                    export_btn = gr.Button("💾 Export mix", variant="primary")
+                    reset_btn = gr.Button("Reset workspace", variant="secondary")
+                with gr.Row():
+                    audio_out = gr.Audio(label="Preview audio", interactive=False)
+                    recipe_out = gr.Code(label="Executed recipe", language="python", interactive=False)
+                download_out = gr.File(label="Rendered file", interactive=False)
+                gr.Markdown(
+                    "Preview delivers a fast snippet for quick tweaks, while export renders the full track and unlocks the download link."
+                )
+        preset_selector.change(_preset_summary, preset_selector, preset_summary)
+        use_preset_btn.click(_load_preset_recipe, preset_selector, recipe_box)
+        preview_btn.click(
+            preview_fn,
+            inputs=[audio_file, recipe_box],
+            outputs=[audio_out, recipe_out, download_out],
+        )
+        export_btn.click(
+            export_fn,
+            inputs=[audio_file, recipe_box],
+            outputs=[audio_out, recipe_out, download_out],
+        )
+        reset_btn.click(
+            _reset_workspace,
+            inputs=None,
+            outputs=[audio_file, recipe_box, audio_out, recipe_out, download_out, preset_selector, preset_summary],
+        )
     return demo
 
 
