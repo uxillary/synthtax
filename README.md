@@ -30,6 +30,7 @@ Synthtax mixes are built from simple text commands:
 - `reverse(track)` — reverse a track
 - `pan(track, amount=-1.0..1.0)` — pan left/right
 - `reverb(track, amount=0.5)` — add simple reverb
+- `beat(track, style="house", bars=4)` — synthesize a drum groove (house/hiphop/breakbeat)
 - `normalize(track, headroom=0.1)` — normalize level
 - `export("mix.wav")` — write the final mix
 
