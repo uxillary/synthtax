@@ -48,6 +48,12 @@ def apply_commands(commands: List[Dict], uploaded_path: Optional[str] = None, pr
             seg = tracks.get(cmd['track'])
             if seg is not None:
                 tracks[cmd['track']] = fx.normalize(seg, cmd.get('headroom', 0.1))
+        elif action == 'beat':
+            tracks[cmd['track']] = fx.generate_beat(
+                style=cmd.get('style', 'house'),
+                bars=cmd.get('bars', 4),
+                bpm=context.get('bpm', 120),
+            )
         elif action == 'reverb':
             seg = tracks.get(cmd['track'])
             if seg is not None:

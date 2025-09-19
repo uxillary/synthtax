@@ -22,6 +22,10 @@ PRESETS = {
         "recipe": """set(bpm=128, key=\"F#m\")\nload main from \"uploaded\"\nloop(main, bars=4)\ngain(main, 2)\nexport(\"dance_mix.wav\")""",
         "description": "High-energy club feel with extended loops and a confident lift in loudness.\n\n- Tempo: 128 BPM in F# minor\n- Four-bar repeating driver\n- Volume push to own the floor",
     },
+    "Remix Spark": {
+        "recipe": """set(bpm=100, key=\"Am\")\nload vox from \"uploaded\"\nslice(vox, start=0, duration=16000)\nloop(vox, bars=4)\nbeat(drums, style=\"hiphop\", bars=4)\ngain(drums, -2)\nexport(\"remix_flip.wav\")""",
+        "description": "Jump-start a remix with a looped vocal slice riding over a ready-made hip-hop beat.\n\n- Tempo: 100 BPM in A minor\n- Auto-generated drums in hip-hop style\n- Quick stem loop for chopping inspiration",
+    },
 }
 
 DEFAULT_PRESET = "Ambient Drift"
@@ -108,7 +112,7 @@ def build_ui() -> gr.Blocks:
                 audio_file = gr.File(label="Upload audio", file_types=["audio"])
                 with gr.Accordion("Need a quick syntax tour?", open=False):
                     gr.Markdown(
-                        """- `set(bpm=120, key=\"C\")` adjusts global tempo and key.\n- `load main from \"uploaded\"` grabs your uploaded file.\n- Effects like `reverb`, `gain`, and `loop` sculpt the vibe.\n- `export(\"mix.wav\")` saves the final bounce."""
+                        """- `set(bpm=120, key=\"C\")` adjusts global tempo and key.\n- `load main from \"uploaded\"` grabs your uploaded file.\n- `beat(drums, style=\"house\", bars=4)` adds an auto-generated drum groove.\n- Effects like `reverb`, `gain`, and `loop` sculpt the vibe.\n- `export(\"mix.wav\")` saves the final bounce."""
                     )
                 gr.Markdown(
                     """### 2. Choose a preset vibe\nExplore curated starting points before fine-tuning the recipe."""

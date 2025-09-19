@@ -53,6 +53,15 @@ def prompt_to_synthtax(prompt: str) -> str:
         track, db = m.groups()
         lines.append(f"gain({track}, {db})")
 
+    beat_match = re.search(
+        r"(?:add|layer)\s+(?:a\s+)?(house|hip ?hop|breakbeat)\s+beat",
+        prompt,
+        re.IGNORECASE,
+    )
+    if beat_match:
+        style = beat_match.group(1).lower().replace(" ", "")
+        lines.append(f'beat(drums, style="{style}", bars=4)')
+
     # ``export`` command
     for m in re.finditer(r"export\s+to\s+['\"]([^'\"]+)['\"]", prompt, re.IGNORECASE):
         filename = m.group(1)
@@ -137,6 +146,21 @@ def parse(text: str) -> List[Dict]:
             if headroom is not None:
                 cmd['headroom'] = float(headroom)
             commands.append(cmd)
+        elif line.startswith('beat'):
+            m = re.match(
+                r'beat\(\s*(\w+)(?:,\s*style\s*=\s*"([^"]+)")?(?:,\s*bars\s*=\s*(\d+))?\s*\)',
+                line,
+            )
+            if not m:
+                raise ValueError(f"Invalid beat syntax: {line}")
+            track, style, bars = m.groups()
+            cmd = {
+                'action': 'beat',
+                'track': track,
+                'style': style or 'house',
+                'bars': int(bars) if bars else 4,
+            }
+            commands.append(cmd)
         elif line.startswith('reverb'):
             m = re.match(r'reverb\(\s*(\w+),\s*amount\s*=\s*([0-9.]+)\s*\)', line)
             if not m:
@@ -187,6 +211,10 @@ def from_yaml(yaml_text: str) -> str:
                 lines.append(f"normalize({cmd['track']}, headroom={cmd['headroom']})")
             else:
                 lines.append(f"normalize({cmd['track']})")
+        elif act == 'beat':
+            style = cmd.get('style', 'house')
+            bars = cmd.get('bars', 4)
+            lines.append(f"beat({cmd['track']}, style=\"{style}\", bars={bars})")
         elif act == 'reverb':
             lines.append(f"reverb({cmd['track']}, amount={cmd['amount']})")
         elif act == 'export':

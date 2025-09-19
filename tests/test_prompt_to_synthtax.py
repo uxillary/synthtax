@@ -27,3 +27,13 @@ def test_prompt_to_synthtax_basic():
         {'action': 'gain', 'track': 'DRUM', 'db': -3},
         {'action': 'export', 'file': 'out.wav'},
     ]
+
+
+def test_prompt_to_synthtax_with_beat():
+    prompt = "layer a hip hop beat and export to \"flip.wav\""
+    synth = parser.prompt_to_synthtax(prompt)
+    expected = '\n'.join([
+        'beat(drums, style="hiphop", bars=4)',
+        'export("flip.wav")',
+    ])
+    assert synth == expected
