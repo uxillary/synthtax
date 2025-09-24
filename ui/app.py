@@ -35,10 +35,37 @@ THEME = gr.themes.Soft(
     primary_hue="violet",
     secondary_hue="blue",
     neutral_hue="slate",
+).set(
+    body_background_fill="#0f172a",
+    body_text_color="#e2e8f0",
+    block_background_fill="#1e293b",
+    block_border_color="#334155",
+    shadow_drop="0 12px 40px rgba(15, 23, 42, 0.45)",
+    button_primary_background_fill="#7c3aed",
+    button_primary_background_fill_hover="#6d28d9",
+    button_primary_text_color="#f8fafc",
+    button_secondary_background_fill="#334155",
+    button_secondary_background_fill_hover="#1e293b",
+    button_secondary_text_color="#e2e8f0",
 )
 
 CSS = """
-.gradio-container {max-width: 1100px !important; margin: 0 auto;}
+:root {color-scheme: dark;}
+body {background-color: #0f172a; color: #e2e8f0;}
+.gradio-container {max-width: 1100px !important; margin: 0 auto; color: #e2e8f0;}
+.gradio-container .gr-block, .gradio-container .gr-panel {background-color: transparent;}
+.gradio-container .gr-box, .gradio-container .gr-accordion, .gradio-container .gr-panel, .gradio-container .gr-form {background-color: #1e293b; border-color: #334155;}
+.gradio-container label, .gradio-container .gr-markdown {color: #e2e8f0;}
+.gradio-container .gr-markdown h1, .gradio-container .gr-markdown h2, .gradio-container .gr-markdown h3, .gradio-container .gr-markdown h4, .gradio-container .gr-markdown h5, .gradio-container .gr-markdown h6, .gradio-container .gr-markdown p, .gradio-container .gr-markdown li {color: #e2e8f0;}
+.gradio-container input, .gradio-container textarea, .gradio-container select {background-color: #0b1120; color: #f8fafc; border-color: #334155;}
+.gradio-container input::placeholder, .gradio-container textarea::placeholder {color: #94a3b8;}
+.gradio-container .cm-editor, .gradio-container .cm-scroller {background-color: #0b1120 !important; color: #f8fafc !important;}
+.gradio-container .cm-content {color: #f8fafc !important;}
+.gradio-container .gr-button-primary {background-color: #7c3aed !important; border-color: #7c3aed !important; color: #f8fafc !important;}
+.gradio-container .gr-button-primary:hover {background-color: #6d28d9 !important;}
+.gradio-container .gr-button-secondary {background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important;}
+.gradio-container .gr-button-secondary:hover {background-color: #1e293b !important;}
+.gradio-container .svelte-drum {color: #e2e8f0;}
 .preset-description {min-height: 120px;}
 .recipe-box textarea {font-size: 0.95rem;}
 """
